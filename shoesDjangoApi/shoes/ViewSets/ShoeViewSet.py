@@ -19,5 +19,13 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 	def filter_queryset(self):
 		params = self.request.query_params
 		search_query = params.get('searchQuery')
+		page = int(params.get('page'))
+		limit = int(params.get('limit'))
+
 		if search_query:
 			self.queryset = self.queryset.filter(name__contains=search_query)
+
+		if page and limit:
+			offset = (page-1)*limit
+			# self.queryset = self.queryset[(page-1)*limit:limit]
+			self.queryset = self.queryset[offset:offset + limit]
