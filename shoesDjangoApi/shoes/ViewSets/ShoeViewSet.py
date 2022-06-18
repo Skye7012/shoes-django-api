@@ -1,3 +1,4 @@
+from django.db.models.functions import Lower
 from rest_framework import viewsets
 from rest_framework.response import Response
 import django
@@ -20,13 +21,26 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 	def filter_queryset(self):
 		params = self.request.query_params
 		search_query = params.get('searchQuery')
-		page = int(params.get('page'))
-		limit = int(params.get('limit'))
+		page = params.get('page', default='1')
+		limit = params.get('limit')
+		order_by = params.get('orderBy')
+		is_ascending = params.get('isAscending', default=True)
 
 		# Поиск по наименованию
 		if search_query:
 			self.queryset = self.queryset.filter(name__contains=search_query)
+
 		# Пагинация
 		if page and limit:
+			page = int(page)
+			limit = int(limit)
 			offset = (page - 1) * limit
 			self.queryset = self.queryset[offset:offset + limit]
+
+		if order_by and is_ascending:
+			if Lower(is_ascending) == 'true':
+				self.queryset = self.queryset.order_by(order_by)
+			else:
+				self.queryset = self.queryset.order_by('-' + order_by)
+
+
