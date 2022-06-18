@@ -9,13 +9,14 @@ from shoes.Serializers.ShoeSerializer import ShoeSerializer
 
 class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Shoe.objects.all()
+	querysetCount = None
 	serializer_class = ShoeSerializer
 
 	def list(self, request, *args, **kwargs):
 		self.do_filter_queryset()
-		totalCount = Shoe.objects.count()
+		total_count = self.querysetCount
 		items = self.serializer_class(self.queryset, many=True).data
-		response = {'totalCount': totalCount, 'items': items}
+		response = {'totalCount': total_count, 'items': items}
 		return Response(response)
 
 	# Фильтрация
@@ -29,6 +30,7 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 		brand_filters = params.getlist('BrandFilters')
 		destination_filters = params.getlist('DestinationFilters')
 		season_filters = params.getlist('SeasonFilters')
+		size_filters = params.getlist('SizeFilters')
 
 
 		# Поиск по наименованию
@@ -47,8 +49,13 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 
 		# Фильтрация по выбранным сезонам
 		if season_filters:
-			season_filters = [int(s) for s in season_filters]
+			season_filters = [int(d) for d in season_filters]
 			self.queryset = self.queryset.filter(season_id__in=season_filters)
+
+		# Фильтрация по выбранным размерам
+		if size_filters:
+			size_filters = [int(s) for s in size_filters]
+			self.queryset = self.queryset.filter(ruSizes__ru_size__in=size_filters).distinct()
 
 		# Сортировка
 		if order_by and is_ascending:
@@ -57,6 +64,9 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 				self.queryset = self.queryset.order_by(order_by)
 			else:
 				self.queryset = self.queryset.order_by('-' + order_by)
+
+		# Кол-во сущностей, прошедших фильтрацию
+		self.querysetCount = self.queryset.count()
 
 		# Пагинация
 		if page and limit:
