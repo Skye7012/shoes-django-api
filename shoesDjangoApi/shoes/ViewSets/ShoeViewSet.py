@@ -16,16 +16,17 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 		response = {'count': len(items), 'items': items}
 		return Response(response)
 
+	# Фильтрация
 	def filter_queryset(self):
 		params = self.request.query_params
 		search_query = params.get('searchQuery')
 		page = int(params.get('page'))
 		limit = int(params.get('limit'))
 
+		# Поиск по наименованию
 		if search_query:
 			self.queryset = self.queryset.filter(name__contains=search_query)
-
+		# Пагинация
 		if page and limit:
-			offset = (page-1)*limit
-			# self.queryset = self.queryset[(page-1)*limit:limit]
+			offset = (page - 1) * limit
 			self.queryset = self.queryset[offset:offset + limit]
