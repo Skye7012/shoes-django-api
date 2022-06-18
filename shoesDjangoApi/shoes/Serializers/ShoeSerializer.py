@@ -10,10 +10,15 @@ class ShoeSerializer(serializers.ModelSerializer):
 	brand = BrandSerializer()
 	destination = DestinationSerializer()
 	season = SeasonSerializer()
+	ruSizes = serializers.SlugRelatedField(
+		many=True,
+		read_only=True,
+		slug_field='ru_size'
+	)
 
 	class Meta:
 		model = Shoe
-		fields = ('id', 'name', 'image', 'price', 'brand', 'destination', 'season')
+		fields = ('id', 'name', 'image', 'price', 'brand', 'destination', 'season', 'ruSizes')
 
 
 # class GetShoeSerializer(serializers.Serializer):

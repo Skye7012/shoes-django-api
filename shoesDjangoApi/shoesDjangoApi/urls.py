@@ -8,6 +8,7 @@ router.register(r'brand', BrandViewSet)
 router.register(r'season', SeasonViewSet)
 router.register(r'destination', DestinationViewSet)
 router.register(r'shoe', ShoeViewSet)
+router.register(r'size', SizeViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),

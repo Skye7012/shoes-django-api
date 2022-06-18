@@ -12,13 +12,13 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 	serializer_class = ShoeSerializer
 
 	def list(self, request, *args, **kwargs):
-		self.filter_queryset()
+		self.do_filter_queryset()
 		items = self.serializer_class(self.queryset, many=True).data
 		response = {'count': len(items), 'items': items}
 		return Response(response)
 
 	# Фильтрация
-	def filter_queryset(self):
+	def do_filter_queryset(self):
 		params = self.request.query_params
 		search_query = params.get('searchQuery')
 		page = params.get('page', default='1')
