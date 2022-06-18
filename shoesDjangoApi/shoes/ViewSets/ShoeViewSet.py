@@ -13,22 +13,31 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 
 	def list(self, request, *args, **kwargs):
 		self.do_filter_queryset()
+		totalCount = Shoe.objects.count()
 		items = self.serializer_class(self.queryset, many=True).data
-		response = {'count': len(items), 'items': items}
+		response = {'totalCount': totalCount, 'items': items}
 		return Response(response)
 
 	# Фильтрация
 	def do_filter_queryset(self):
 		params = self.request.query_params
-		search_query = params.get('searchQuery')
-		page = params.get('page', default='1')
-		limit = params.get('limit')
-		order_by = params.get('orderBy')
-		is_ascending = params.get('isAscending', default=True)
+		search_query = params.get('SearchQuery')
+		page = params.get('Page', default='1')
+		limit = params.get('Limit')
+		order_by = params.get('OrderBy')
+		is_ascending = params.get('IsAscending', default="true")
 
 		# Поиск по наименованию
 		if search_query:
 			self.queryset = self.queryset.filter(name__contains=search_query)
+
+		# Сортировка
+		if order_by and is_ascending:
+			order_by = order_by.lower()
+			if is_ascending.lower() == 'true':
+				self.queryset = self.queryset.order_by(order_by)
+			else:
+				self.queryset = self.queryset.order_by('-' + order_by)
 
 		# Пагинация
 		if page and limit:
@@ -36,11 +45,5 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 			limit = int(limit)
 			offset = (page - 1) * limit
 			self.queryset = self.queryset[offset:offset + limit]
-
-		if order_by and is_ascending:
-			if Lower(is_ascending) == 'true':
-				self.queryset = self.queryset.order_by(order_by)
-			else:
-				self.queryset = self.queryset.order_by('-' + order_by)
 
 
