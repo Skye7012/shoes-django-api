@@ -10,3 +10,4 @@ class Shoe(models.Model):
 	brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
 	destination = models.ForeignKey(Destination, on_delete=models.CASCADE)
 	season = models.ForeignKey(Season, on_delete=models.CASCADE)
+
