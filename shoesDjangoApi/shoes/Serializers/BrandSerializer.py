@@ -6,4 +6,4 @@ from shoes.Models.Brand import Brand
 class BrandSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Brand
-		fields = ('id', 'name')
+		fields = '__all__'

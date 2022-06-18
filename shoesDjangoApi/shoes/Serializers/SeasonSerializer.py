@@ -6,4 +6,4 @@ from shoes.Models.Season import Season
 class SeasonSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Season
-		fields = ('id', 'name')
+		fields = '__all__'

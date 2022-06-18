@@ -6,4 +6,4 @@ from shoes.Models.Destination import Destination
 class DestinationSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Destination
-		fields = ('id', 'name')
+		fields = '__all__'
