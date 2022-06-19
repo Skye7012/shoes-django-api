@@ -12,5 +12,6 @@ router.register(r'size', SizeViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include(router.urls)),
+    path('', include(router.urls)),  # Api endpoints
+    path('', include('authemail.urls')),  # Authorization endpoints
 ]

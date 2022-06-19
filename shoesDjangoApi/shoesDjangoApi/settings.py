@@ -37,9 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'shoes.apps.ShoesConfig',
     'rest_framework',
-    'corsheaders',
+    'rest_framework.authtoken',
+    'authemail',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -130,3 +133,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+    )
+}
+
+AUTH_USER_MODEL = 'accounts.MyUser'
+
+EMAIL_FROM = 'admin@admin.shoes'
+EMAIL_BCC = 'admin@admin.shoes'
+
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 25
+EMAIL_HOST_USER = 'admin@admin.shoes'
+EMAIL_HOST_PASSWORD = ''
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = False

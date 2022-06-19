@@ -4,3 +4,6 @@ from django.contrib import admin
 from shoes.Models.Brand import Brand
 
 admin.site.register(Brand)
+
+
+
