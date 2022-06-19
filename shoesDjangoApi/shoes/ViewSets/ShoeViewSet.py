@@ -11,6 +11,7 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Shoe.objects.all()
 	querysetCount = None
 	serializer_class = ShoeSerializer
+	authentication_classes = []
 
 	def list(self, request, *args, **kwargs):
 		self.do_filter_queryset()

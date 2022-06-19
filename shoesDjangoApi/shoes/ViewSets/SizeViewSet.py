@@ -7,4 +7,4 @@ from shoes.Serializers.SizeSerializer import SizeSerializer
 class SizeViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Size.objects.all()
 	serializer_class = SizeSerializer
-
+	authentication_classes = []

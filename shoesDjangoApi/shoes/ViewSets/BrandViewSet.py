@@ -7,4 +7,5 @@ from shoes.Serializers.BrandSerializer import BrandSerializer
 class BrandViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Brand.objects.all()
 	serializer_class = BrandSerializer
+	authentication_classes = []
 

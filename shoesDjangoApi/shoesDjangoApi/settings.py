@@ -134,7 +134,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8080",
+]
+
 REST_FRAMEWORK = {
+
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
     )

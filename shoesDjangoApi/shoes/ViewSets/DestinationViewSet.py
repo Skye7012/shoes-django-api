@@ -7,4 +7,6 @@ from shoes.Serializers.DestinationSerializer import DestinationSerializer
 class DestinationViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Destination.objects.all()
 	serializer_class = DestinationSerializer
+	authentication_classes = []
+
 

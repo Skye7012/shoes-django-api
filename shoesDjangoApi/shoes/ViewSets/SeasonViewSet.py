@@ -7,4 +7,5 @@ from shoes.Serializers.SeasonSerializer import SeasonSerializer
 class SeasonViewSet(viewsets.ReadOnlyModelViewSet):
 	queryset = Season.objects.all()
 	serializer_class = SeasonSerializer
+	authentication_classes = []
 
