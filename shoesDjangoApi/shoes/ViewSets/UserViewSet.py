@@ -2,6 +2,7 @@ import uuid
 
 from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
 from django.db import transaction
+from django.db.models import Model
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.datastructures import MultiValueDictKeyError
@@ -23,8 +24,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 				  GenericViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
-
-	# permission_classes = [IsAuthenticated]
+	permission_classes = [IsAuthenticated]
 
 	@transaction.atomic
 	@action(detail=False, methods=['post'])
@@ -67,7 +67,10 @@ class UserViewSet(mixins.RetrieveModelMixin,
 		# elif user.password != password:
 		# 	return Response("Wrong password")
 
-		token = Token.objects.create(user=user)
+		if Token.objects.filter(user=user).exists():
+			token = Token.objects.get(user=user)
+		else:
+			token = Token.objects.create(user=user)
 
 		return Response(f"Token {token.key}")
 

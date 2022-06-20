@@ -9,3 +9,11 @@ class User(models.Model):
 	phone = models.CharField(max_length=31)
 	is_verified = models.BooleanField(default=False)
 
+	@property
+	def is_active(self):
+		return True
+
+	@property
+	def is_authenticated(self):
+		return True
+
