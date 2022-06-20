@@ -1,3 +1,6 @@
+import uuid
+
+from django.core.mail import send_mail, EmailMessage
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import mixins
 from rest_framework.decorators import action
@@ -5,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from shoes.Models.SignupCode import SignupCode
 from shoes.Models.User import User
 from shoes.Serializers.UserSerializer import UserSerializer
 
@@ -35,8 +39,33 @@ class UserViewSet(mixins.RetrieveModelMixin,
 		user.phone = data.get('phone', '')
 
 		user.save()
+
+		self.send_signup_email(user)
+
 		user_data = self.serializer_class(user).data
 		return Response(user_data)
+
+	def send_signup_email(self, user):
+
+		code = SignupCode(
+			code=uuid.uuid4(),
+			user=user
+		)
+		code.save()
+
+		subject = 'Signup verification'
+		body = 'Verify your email address by clicking on this link: link'
+		to = [user.email]
+
+		email = EmailMessage(subject, body, to=to)
+		email.send()
+		# send_mail(
+		# 	subject='Signup verification',
+		# 	message='Verify your email address by clicking on this link: link',
+		# 	recipient_list=[user.email]
+		# )
+
+
 	# serializer = PasswordSerializer(data=request.data)
 	# if serializer.is_valid():
 	# 	user.set_password(serializer.validated_data['password'])

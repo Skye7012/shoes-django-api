@@ -143,8 +143,7 @@ REST_FRAMEWORK = {
     )
 }
 
-EMAIL_FROM = 'admin@admin.shoes'
-EMAIL_BCC = 'admin@admin.shoes'
+DEFAULT_FROM_EMAIL = 'admin@admin.shoes'
 
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
