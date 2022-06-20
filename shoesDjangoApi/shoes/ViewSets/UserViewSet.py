@@ -6,7 +6,7 @@ from django.db.models import Model
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import mixins
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -19,13 +19,31 @@ from shoes.Models.User import User
 from shoes.Serializers.UserSerializer import UserSerializer
 
 
-class UserViewSet(mixins.RetrieveModelMixin,
-				  mixins.UpdateModelMixin,
-				  mixins.DestroyModelMixin,
-				  GenericViewSet):
+# class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(GenericViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 	permission_classes = [IsAuthenticated]
+
+	def get(self, request):
+		data = self.serializer_class(request.user).data
+		return Response(data)
+
+	def put(self, request):
+		data = request.data
+		user = request.user
+
+		user.first_name = data.get('first_name', user.first_name)
+		user.last_name = data.get('last_name', user.last_name)
+		user.phone = data.get('phone', user.phone)
+		user.save()
+
+		return Response()
+
+	def delete(self, request):
+		user = request.user
+		user.delete()
+		return Response()
 
 	@transaction.atomic
 	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
@@ -39,7 +57,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 				first_name=data['first_name'],
 			)
 		except MultiValueDictKeyError as e:
-			return Response(f"Required field {str(e)} not specified")
+			return Response(f"Required field {str(e)} not specified", status=StatusCodes.HTTP_400_BAD_REQUEST)
 
 		user.last_name = data.get('last_name', '')
 		user.phone = data.get('phone', '')
@@ -49,37 +67,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 		send_signup_email(user)
 
 		user_data = self.serializer_class(user).data
-		return Response(user_data)
-
-	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
-	def login(self, request):
-		data = request.POST
-
-		try:
-			email = data['email']
-			password = data['password']
-		except MultiValueDictKeyError as e:
-			return Response(f"Required field {str(e)} not specified")
-
-		user = User.objects.get(email=email)
-
-		# if not user.is_verified:
-		# 	return Response("User is not verified")
-		# elif user.password != password:
-		# 	return Response("Wrong password")
-
-		if Token.objects.filter(user=user).exists():
-			token = Token.objects.get(user=user)
-		else:
-			token = Token.objects.create(user=user)
-
-		return Response(f"Token {token.key}")
-
-	@action(detail=False, methods=['post'])
-	def logout(self, request):
-		token = request.auth
-		token.delete()
-		return Response()
+		return Response(user_data, status=StatusCodes.HTTP_201_CREATED)
 
 	@action(detail=False, methods=['get'], permission_classes=[AllowAny])
 	def verify(self, request):
@@ -95,6 +83,36 @@ class UserViewSet(mixins.RetrieveModelMixin,
 			return Response()
 		else:
 			return Response(status=StatusCodes.HTTP_404_NOT_FOUND)
+
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
+	def login(self, request):
+		data = request.POST
+
+		try:
+			email = data['email']
+			password = data['password']
+		except MultiValueDictKeyError as e:
+			return Response(f"Required field {str(e)} not specified")
+
+		user = User.objects.get(email=email)
+
+		if not user.is_verified:
+			return Response("User is not verified", status=StatusCodes.HTTP_400_BAD_REQUEST)
+		elif user.password != password:
+			return Response("Wrong password", status=StatusCodes.HTTP_400_BAD_REQUEST)
+
+		if Token.objects.filter(user=user).exists():
+			token = Token.objects.get(user=user)
+		else:
+			token = Token.objects.create(user=user)
+
+		return Response(f"Token {token.key}")
+
+	@action(detail=False, methods=['post'])
+	def logout(self, request):
+		token = request.auth
+		token.delete()
+		return Response()
 
 
 def send_signup_email(user):
@@ -116,18 +134,3 @@ def send_signup_email(user):
 
 def get_verify_link(code):
 	return f"http://127.0.0.1:8000/user/verify/?code={code}"
-
-# serializer = PasswordSerializer(data=request.data)
-# if serializer.is_valid():
-# 	user.set_password(serializer.validated_data['password'])
-# 	user.save()
-# 	return Response({'status': 'password set'})
-# else:
-# 	return Response(serializer.errors,
-# 					status=status.HTTP_400_BAD_REQUEST)
-
-# def retrieve(self, request, *args, **kwargs):
-# 	pk = kwargs['pk']
-# 	user = User.objects.get(pk=pk)
-# 	user = UserSerializer(user).data
-# 	return Response(user)
