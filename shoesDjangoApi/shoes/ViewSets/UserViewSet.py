@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from shoes.Models.SignupCode import SignupCode
+from shoes.Models.Token import Token
 from shoes.Models.User import User
 from shoes.Serializers.UserSerializer import UserSerializer
 
@@ -49,9 +50,29 @@ class UserViewSet(mixins.RetrieveModelMixin,
 		user_data = self.serializer_class(user).data
 		return Response(user_data)
 
+	@action(detail=False, methods=['post'])
+	def login(self, request):
+		data = request.POST
+
+		try:
+			email = data['email']
+			password = data['password']
+		except MultiValueDictKeyError as e:
+			return Response(f"Required field {str(e)} not specified")
+
+		user = User.objects.get(email=email)
+
+		# if not user.is_verified:
+		# 	return Response("User is not verified")
+		# elif user.password != password:
+		# 	return Response("Wrong password")
+
+		token = Token.objects.create(user=user)
+
+		return Response(f"Token {token.key}")
+
 
 def send_signup_email(user):
-
 	code = SignupCode(
 		code=uuid.uuid4(),
 		user=user
@@ -71,14 +92,14 @@ def send_signup_email(user):
 def get_verify_link(code):
 	return f"http://127.0.0.1:8000/verify/?code={code}"
 
-	# serializer = PasswordSerializer(data=request.data)
-	# if serializer.is_valid():
-	# 	user.set_password(serializer.validated_data['password'])
-	# 	user.save()
-	# 	return Response({'status': 'password set'})
-	# else:
-	# 	return Response(serializer.errors,
-	# 					status=status.HTTP_400_BAD_REQUEST)
+# serializer = PasswordSerializer(data=request.data)
+# if serializer.is_valid():
+# 	user.set_password(serializer.validated_data['password'])
+# 	user.save()
+# 	return Response({'status': 'password set'})
+# else:
+# 	return Response(serializer.errors,
+# 					status=status.HTTP_400_BAD_REQUEST)
 
 # def retrieve(self, request, *args, **kwargs):
 # 	pk = kwargs['pk']
