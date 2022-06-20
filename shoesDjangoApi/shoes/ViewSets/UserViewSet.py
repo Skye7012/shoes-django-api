@@ -8,8 +8,9 @@ from django.template.loader import render_to_string
 from django.utils.datastructures import MultiValueDictKeyError
 from rest_framework import mixins
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+import rest_framework.status as StatusCodes
 from rest_framework.viewsets import GenericViewSet
 
 from shoes.Models.SignupCode import SignupCode
@@ -27,7 +28,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 	permission_classes = [IsAuthenticated]
 
 	@transaction.atomic
-	@action(detail=False, methods=['post'])
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
 	def signup(self, request):
 		data = request.POST
 
@@ -50,7 +51,7 @@ class UserViewSet(mixins.RetrieveModelMixin,
 		user_data = self.serializer_class(user).data
 		return Response(user_data)
 
-	@action(detail=False, methods=['post'])
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
 	def login(self, request):
 		data = request.POST
 
@@ -74,6 +75,27 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
 		return Response(f"Token {token.key}")
 
+	@action(detail=False, methods=['post'])
+	def logout(self, request):
+		token = request.auth
+		token.delete()
+		return Response()
+
+	@action(detail=False, methods=['get'], permission_classes=[AllowAny])
+	def verify(self, request):
+		code = request.query_params.get('code')
+
+		if code is None:
+			return Response(status=StatusCodes.HTTP_400_BAD_REQUEST)
+
+		if SignupCode.objects.filter(code=code).exists():
+			user = SignupCode.objects.get(code=code).user
+			user.is_verified = True
+			user.save()
+			return Response()
+		else:
+			return Response(status=StatusCodes.HTTP_404_NOT_FOUND)
+
 
 def send_signup_email(user):
 	code = SignupCode(
@@ -93,7 +115,7 @@ def send_signup_email(user):
 
 
 def get_verify_link(code):
-	return f"http://127.0.0.1:8000/verify/?code={code}"
+	return f"http://127.0.0.1:8000/user/verify/?code={code}"
 
 # serializer = PasswordSerializer(data=request.data)
 # if serializer.is_valid():
