@@ -1,16 +1,13 @@
 import uuid
 
-from django.core.mail import send_mail, EmailMessage, EmailMultiAlternatives
+import rest_framework.status as StatusCodes
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
-from django.db.models import Model
-from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.datastructures import MultiValueDictKeyError
-from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-import rest_framework.status as StatusCodes
 from rest_framework.viewsets import GenericViewSet
 
 from shoes.Models.SignupCode import SignupCode
@@ -19,7 +16,6 @@ from shoes.Models.User import User
 from shoes.Serializers.UserSerializer import UserSerializer
 
 
-# class UserViewSet(viewsets.ModelViewSet):
 class UserViewSet(GenericViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
@@ -38,7 +34,9 @@ class UserViewSet(GenericViewSet):
 		user.phone = data.get('phone', user.phone)
 		user.save()
 
-		return Response()
+		response = self.serializer_class(user).data
+
+		return Response(response)
 
 	def delete(self, request):
 		user = request.user
@@ -53,7 +51,7 @@ class UserViewSet(GenericViewSet):
 		try:
 			user = User(
 				email=data['email'],
-				password=data['password'],
+				password=User.set_password(data['password']),
 				first_name=data['first_name'],
 			)
 		except MultiValueDictKeyError as e:
@@ -94,11 +92,14 @@ class UserViewSet(GenericViewSet):
 		except MultiValueDictKeyError as e:
 			return Response(f"Required field {str(e)} not specified")
 
+		if not User.objects.filter(email=email).exists():
+			return Response(f"There are no such user with email {email}", status=StatusCodes.HTTP_400_BAD_REQUEST)
+
 		user = User.objects.get(email=email)
 
 		if not user.is_verified:
 			return Response("User is not verified", status=StatusCodes.HTTP_400_BAD_REQUEST)
-		elif user.password != password:
+		elif not user.check_password(password):
 			return Response("Wrong password", status=StatusCodes.HTTP_400_BAD_REQUEST)
 
 		if Token.objects.filter(user=user).exists():

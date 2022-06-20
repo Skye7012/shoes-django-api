@@ -1,3 +1,5 @@
+from hashlib import sha512
+
 from django.db import models
 
 
@@ -17,3 +19,9 @@ class User(models.Model):
 	def is_authenticated(self):
 		return True
 
+	@staticmethod
+	def set_password(password):
+		return sha512(password.encode()).hexdigest()
+
+	def check_password(self, password):
+		return self.password == sha512(password.encode()).hexdigest()
