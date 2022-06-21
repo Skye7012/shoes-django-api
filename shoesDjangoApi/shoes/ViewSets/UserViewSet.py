@@ -14,12 +14,14 @@ from shoes.Models.SignupCode import SignupCode
 from shoes.Models.Token import Token
 from shoes.Models.User import User
 from shoes.Serializers.UserSerializer import UserSerializer
+from shoes.authentication import TokenAuthentication
 
 
 class UserViewSet(GenericViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 	permission_classes = [IsAuthenticated]
+	authentication_classes = [TokenAuthentication]
 
 	def get(self, request):
 		data = self.serializer_class(request.user).data
@@ -44,7 +46,7 @@ class UserViewSet(GenericViewSet):
 		return Response()
 
 	@transaction.atomic
-	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
 	def signup(self, request):
 		data = request.POST
 
@@ -67,12 +69,12 @@ class UserViewSet(GenericViewSet):
 		user_data = self.serializer_class(user).data
 		return Response(user_data, status=StatusCodes.HTTP_201_CREATED)
 
-	@action(detail=False, methods=['get'], permission_classes=[AllowAny])
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
 	def verify(self, request):
 		code = request.query_params.get('code')
 
 		if code is None:
-			return Response(status=StatusCodes.HTTP_400_BAD_REQUEST)
+			return Response('Неверный код', status=StatusCodes.HTTP_400_BAD_REQUEST)
 
 		if SignupCode.objects.filter(code=code).exists():
 			user = SignupCode.objects.get(code=code).user
@@ -80,9 +82,9 @@ class UserViewSet(GenericViewSet):
 			user.save()
 			return Response()
 		else:
-			return Response(status=StatusCodes.HTTP_404_NOT_FOUND)
+			return Response('Произошла ошибка', status=StatusCodes.HTTP_404_NOT_FOUND)
 
-	@action(detail=False, methods=['post'], permission_classes=[AllowAny])
+	@action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
 	def login(self, request):
 		data = request.POST
 
@@ -90,7 +92,7 @@ class UserViewSet(GenericViewSet):
 			email = data['email']
 			password = data['password']
 		except MultiValueDictKeyError as e:
-			return Response(f"Required field {str(e)} not specified")
+			return Response(f"Required field {str(e)} not specified", status=StatusCodes.HTTP_400_BAD_REQUEST)
 
 		if not User.objects.filter(email=email).exists():
 			return Response(f"There are no such user with email {email}", status=StatusCodes.HTTP_400_BAD_REQUEST)
@@ -134,4 +136,4 @@ def send_signup_email(user):
 
 
 def get_verify_link(code):
-	return f"http://127.0.0.1:8000/user/verify/?code={code}"
+	return f"http://localhost:8080/verify/?code={code}"
