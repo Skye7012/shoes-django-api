@@ -136,4 +136,4 @@ def send_signup_email(user):
 
 
 def get_verify_link(code):
-	return f"http://localhost:8080/verify/?code={code}"
+	return f"http://localhost:8080/verify?code={code}"

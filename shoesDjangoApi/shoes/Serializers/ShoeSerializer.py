@@ -21,13 +21,3 @@ class ShoeSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'image', 'price', 'brand', 'destination', 'season', 'ruSizes')
 
 
-# class GetShoeSerializer(serializers.Serializer):
-# 	count = serializers.IntegerField()
-# 	items = serializers.ListField()
-
-# class ShoeSerializer(serializers.Serializer):
-# 	# count = ShoeItemSerializer().data.count
-# 	items = ShoeItemSerializer(data=Shoe.objects.all()).validated_data
-#
-# 	# class Meta:
-# 	# 	fields = ('items',)

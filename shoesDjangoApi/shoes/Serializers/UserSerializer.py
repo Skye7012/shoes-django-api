@@ -7,5 +7,3 @@ class UserSerializer(serializers.ModelSerializer):
 		model = User
 		exclude = ['password', 'is_verified']
 		read_only_fields = ['email']
-		# fields = '__all__'
-		# extra_kwargs = {'password': {'write_only': True}}
