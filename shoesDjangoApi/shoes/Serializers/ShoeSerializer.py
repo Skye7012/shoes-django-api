@@ -21,3 +21,9 @@ class ShoeSerializer(serializers.ModelSerializer):
 		fields = ('id', 'name', 'image', 'price', 'brand', 'destination', 'season', 'ruSizes')
 
 
+class SimpleShoeSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = Shoe
+		fields = ['id', 'name', 'image', 'price']
+
+
