@@ -29,7 +29,8 @@ class OrderViewSet(mixins.CreateModelMixin,
 		for order in data:
 			order['orderItems'] = get_order_items(pk=order['id'])
 
-		return Response(data)
+		response = {'totalCount': len(data), 'items': data}
+		return Response(response)
 
 	@transaction.atomic
 	def create(self, request, *args, **kwargs):
@@ -49,9 +50,7 @@ class OrderViewSet(mixins.CreateModelMixin,
 		order = Order.objects.create(
 			user=request.user,
 			address=address,
-			sum=reduce(
-				lambda x, y: x.shoe.price + y.shoe.price,
-				order_items),
+			sum=sum(c.shoe.price for c in order_items),
 			count=len(order_items),
 		)
 		order.orderitem_set.add(*order_items, bulk=False)
@@ -59,6 +58,7 @@ class OrderViewSet(mixins.CreateModelMixin,
 		order.save()
 
 		response = self.serializer_class(Order.objects.get(pk=order.pk)).data
+		response['orderItems'] = get_order_items(response['id'])
 
 		return Response(response, status=StatusCodes.HTTP_201_CREATED)
 
