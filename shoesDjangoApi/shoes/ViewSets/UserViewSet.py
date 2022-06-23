@@ -1,7 +1,9 @@
 import uuid
 
 import rest_framework.status as StatusCodes
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMultiAlternatives
+from django.core.validators import validate_email
 from django.db import transaction
 from django.template.loader import render_to_string
 from django.utils.datastructures import MultiValueDictKeyError
@@ -59,15 +61,21 @@ class UserViewSet(GenericViewSet):
 		except MultiValueDictKeyError as e:
 			return Response(f"Required field {str(e)} not specified", status=StatusCodes.HTTP_400_BAD_REQUEST)
 
+		try:
+			validate_email(user.email)
+		except ValidationError as e:
+			return Response(e, status=StatusCodes.HTTP_400_BAD_REQUEST)
+
 		user.last_name = data.get('last_name', '')
 		user.phone = data.get('phone', '')
+
+		user_data = self.serializer_class(user)
 
 		user.save()
 
 		send_signup_email(user)
 
-		user_data = self.serializer_class(user).data
-		return Response(user_data, status=StatusCodes.HTTP_201_CREATED)
+		return Response(user_data.data, status=StatusCodes.HTTP_201_CREATED)
 
 	@action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
 	def verify(self, request):
