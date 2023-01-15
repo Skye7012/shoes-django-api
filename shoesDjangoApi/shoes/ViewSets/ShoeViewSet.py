@@ -1,7 +1,7 @@
-from django.db.models.functions import Lower
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
-import django
+import rest_framework.status as StatusCodes
 
 from shoes.Models.Shoe import Shoe
 from shoes.Serializers.ShoeSerializer import ShoeSerializer
@@ -17,6 +17,18 @@ class ShoeViewSet(viewsets.ReadOnlyModelViewSet):
 		total_count = self.querysetCount
 		items = self.serializer_class(self.queryset, many=True).data
 		response = {'totalCount': total_count, 'items': items}
+		return Response(response)
+
+	@action(detail=False, methods=['get'])
+	def get_by_ids(self, request):
+		ids = request.query_params.getlist('ids')
+
+		if ids is None:
+			return Response('Не переданы идентификаторы', status=StatusCodes.HTTP_400_BAD_REQUEST)
+
+		query = self.queryset.filter(id__in=ids)
+		items = self.serializer_class(query, many=True).data
+		response = {'totalCount': len(items), 'items': items}
 		return Response(response)
 
 	# Фильтрация
